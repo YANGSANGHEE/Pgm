@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="TSYS_LIST">
+	<!-- 리스트조회 -->
+	<select id="getPgmList" resultType="Map">
+		SELECT * FROM TSYS_PGM
+	</select>
+
+	<!-- 행추가 -->
+	<insert id="insertPgmList" parameterType="List">
+		INSERT INTO TSYS_PGM
+		(
+		PGM_CD,
+		PGM_NM,
+		PGM_PTH_NM,
+		BUSI_DIV_CD,
+		USE_YN,
+		REG_DTTM,
+		UPDT_DTTM
+		)
+		VALUES
+		<foreach collection="list" item="item" separator=",">
+			(#{item.PGM_CD},
+			#{item.PGM_NM},
+			#{item.PGM_PTH_NM},
+			#{item.BUSI_DIV_CD},
+			#{item.USE_YN},
+			SYSdate(),
+			SYSdate())
+		</foreach>
+	</insert>
+
+	<!--행삭제 -->
+	<delete id="deletePgmList" parameterType="List">
+		DELETE FROM
+		TSYS_PGM
+		WHERE PGM_CD IN(
+		<foreach collection="list" item="item" separator=",">
+			#{item.PGM_CD}
+		</foreach>
+		)
+	</delete>
+
+	<!-- 행 업데이트 -->
+	<update id="updatePgmList" parameterType="List">
+		<foreach collection="list" index="index" item="item"
+			separator=";">
+			UPDATE
+			TSYS_PGM
+			<set>
+				PGM_NM = #{item.PGM_NM},
+				PGM_PTH_NM = #{item.PGM_PTH_NM},
+				BUSI_DIV_CD = #{item.BUSI_DIV_CD},
+				USE_YN = #{item.USE_YN},
+				UPDT_DTTM
+				= SYSdate(),
+			</set>
+			WHERE PGM_CD = #{item.PGM_CD}
+		</foreach>
+	</update>
+
+	<!-- 검색 -->
+	<select id="searhPgmList" parameterType="Hashmap"
+		resultType="Hashmap">
+		SELECT * FROM TSYS_PGM
+		<if test="task != '::전체::'">
+			WHERE BUSI_DIV_CD = #{task}
+			<if test="search != '' and program != '::전체::'">
+				<if test="program == 'PGM_NM'">
+					AND PGM_NM = #{search}
+				</if>
+				<if test="program == 'PGM_PTH_NM'">
+					AND PGM_PTH_NM = #{search}
+				</if>
+				<if test="program == 'PGM_CD'">
+					AND PGM_CD = #{search}
+				</if>
+			</if>
+			<if test="use != '' and use != '::전체::'">
+				AND USE_YN = #{use}
+			</if>
+		</if>
+		<!-- 전체 검색 -->
+		
+		<if test="task == '::전체::'">
+			<if test="program != '' and search != ''">
+				<if test="program == 'PGM_NM'">
+					WHERE PGM_NM = #{search}
+				</if>
+				<if test="program == 'PGM_PTH_NM'">
+					WHERE PGM_PTH_NM = #{search}
+				</if>
+				<if test="program == 'PGM_CD'">
+					WHERE PGM_CD = #{search}
+				</if>
+				<if test="use != '' and use !='::전체::'">
+					AND USE_YN = #{use}
+				</if>
+			</if>
+		</if>
+	<!-- 조건검색+사용 -->
+	
+	<if test ="task =='::전체::' and program == '::전체::' and search == ''">
+		<if test="use != ''">
+			WHERE USE_YN = #{use}
+		</if>
+	</if>
+	<!-- 사용여부 -->
+	</select>
+</mapper>
